@@ -25,6 +25,7 @@ export async function GET(
         maxGuests: guests.maxGuests,
         response: guests.response,
         partySize: guests.partySize,
+        canRespond: guests.canRespond,
       })
       .from(guests)
       .where(eq(guests.id, id))
@@ -59,6 +60,10 @@ export async function PATCH(
   )[0];
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  if (!existing.canRespond) {
+    return NextResponse.json({ error: "Response locked" }, { status: 409 });
+  }
+
   const { response } = parsed.data;
 
   // Only a "yes" has a party size; clamp it to 1..maxGuests
@@ -75,6 +80,7 @@ export async function PATCH(
         response,
         partySize,
         respondedAt: new Date(),
+        canRespond: false,
       })
       .where(eq(guests.id, id))
       .returning()

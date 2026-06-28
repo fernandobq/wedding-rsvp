@@ -9,9 +9,10 @@ type Invitation = {
   maxGuests: number;
   response: "yes" | "no" | null;
   partySize: number | null;
+  canRespond: boolean;
 };
 
-type Status = "loading" | "idle" | "saving" | "done" | "error";
+type Status = "loading" | "idle" | "saving" | "done" | "locked" | "error";
 
 export default function RsvpPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +28,7 @@ export default function RsvpPage() {
         setInv(data);
         setPartySize(data.partySize ?? 1);
         setChoice(data.response);
-        setStatus("idle");
+        setStatus(data.canRespond ? "idle" : "locked");
       })
       .catch(() => setStatus("error"));
   }, [id]);
@@ -43,7 +44,14 @@ export default function RsvpPage() {
         partySize: response === "yes" ? partySize : undefined,
       }),
     });
-    setStatus(res.ok ? "done" : "error");
+    if (res.ok) {
+      setStatus("done");
+    } else if (res.status === 409) {
+      // Already answered in another tab/session — this invitation is locked.
+      setStatus("locked");
+    } else {
+      setStatus("error");
+    }
   }
 
   if (status === "error") {
@@ -92,17 +100,41 @@ export default function RsvpPage() {
               }.`
             : "Your response is saved. Thank you for letting us know."}
         </p>
-        <button
-          onClick={() => setStatus("idle")}
-          className="mt-6 text-sm font-medium text-rose-600 underline-offset-4 hover:underline"
-        >
-          Change my answer
-        </button>
+        <p className="mt-6 rounded-lg bg-stone-50 px-4 py-3 text-sm text-stone-600">
+          This is locked in now. Need to change something? Just reach out to us
+          directly and we&apos;ll reopen your invitation.
+        </p>
       </Shell>
     );
   }
 
-  const alreadyResponded = inv.response !== null;
+  if (status === "locked") {
+    return (
+      <Shell>
+        <p className="text-sm font-medium uppercase tracking-widest text-rose-500">
+          {choice === "yes" ? "See you there" : "We'll miss you"}
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold text-stone-800">
+          You&apos;re all set, {inv.name}!
+        </h1>
+        <p className="mt-3 text-stone-600">
+          {choice === "yes"
+            ? `You let us know you'll be joining${
+                inv.maxGuests > 1 && partySize
+                  ? ` with ${partySize} ${partySize === 1 ? "guest" : "guests"}`
+                  : ""
+              }.`
+            : choice === "no"
+              ? "You let us know you won't be able to make it."
+              : "Your RSVP has already been recorded."}
+        </p>
+        <p className="mt-6 rounded-lg bg-stone-50 px-4 py-3 text-sm text-stone-600">
+          Your answer is locked in. Need to change it? Please reach out to us
+          directly and we&apos;ll reopen your invitation.
+        </p>
+      </Shell>
+    );
+  }
 
   return (
     <Shell>
@@ -115,16 +147,10 @@ export default function RsvpPage() {
       <p className="mt-2 text-stone-600">
         We would be so happy to celebrate with you. Will you join us?
       </p>
-
-      {alreadyResponded && (
-        <div className="mt-5 rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          You previously responded{" "}
-          <span className="font-semibold">
-            {inv.response === "yes" ? "yes" : "no"}
-          </span>
-          . You can update your answer below.
-        </div>
-      )}
+      <p className="mt-3 text-sm text-stone-500">
+        Heads up: you can only answer once, so pick the option that&apos;s right
+        for you.
+      </p>
 
       <div className="mt-6 space-y-5">
         {inv.maxGuests > 1 && (
