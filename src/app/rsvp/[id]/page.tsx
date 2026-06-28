@@ -9,8 +9,6 @@ type Invitation = {
   maxGuests: number;
   response: "yes" | "no" | null;
   partySize: number | null;
-  dietary: string | null;
-  notes: string | null;
 };
 
 type Status = "loading" | "idle" | "saving" | "done" | "error";
@@ -19,8 +17,6 @@ export default function RsvpPage() {
   const { id } = useParams<{ id: string }>();
   const [inv, setInv] = useState<Invitation | null>(null);
   const [partySize, setPartySize] = useState(1);
-  const [dietary, setDietary] = useState("");
-  const [notes, setNotes] = useState("");
   const [choice, setChoice] = useState<"yes" | "no" | null>(null);
   const [status, setStatus] = useState<Status>("loading");
 
@@ -30,8 +26,6 @@ export default function RsvpPage() {
       .then((data: Invitation) => {
         setInv(data);
         setPartySize(data.partySize ?? 1);
-        setDietary(data.dietary ?? "");
-        setNotes(data.notes ?? "");
         setChoice(data.response);
         setStatus("idle");
       })
@@ -47,8 +41,6 @@ export default function RsvpPage() {
       body: JSON.stringify({
         response,
         partySize: response === "yes" ? partySize : undefined,
-        dietary: dietary.trim() || undefined,
-        notes: notes.trim() || undefined,
       }),
     });
     setStatus(res.ok ? "done" : "error");
@@ -153,34 +145,6 @@ export default function RsvpPage() {
             </select>
           </label>
         )}
-
-        <label className="block">
-          <span className="text-sm font-medium text-stone-700">
-            Dietary notes <span className="text-stone-400">(optional)</span>
-          </span>
-          <textarea
-            value={dietary}
-            onChange={(e) => setDietary(e.target.value)}
-            rows={2}
-            maxLength={500}
-            placeholder="Allergies, vegetarian, etc."
-            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-800 shadow-sm focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-200"
-          />
-        </label>
-
-        <label className="block">
-          <span className="text-sm font-medium text-stone-700">
-            A note for us <span className="text-stone-400">(optional)</span>
-          </span>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={2}
-            maxLength={500}
-            placeholder="Anything you'd like us to know"
-            className="mt-1 w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-stone-800 shadow-sm focus:border-rose-400 focus:outline-none focus:ring-2 focus:ring-rose-200"
-          />
-        </label>
       </div>
 
       <div className="mt-7 flex flex-col gap-3 sm:flex-row">

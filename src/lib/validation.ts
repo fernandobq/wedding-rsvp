@@ -6,8 +6,6 @@ import { z } from "zod";
 export const respondSchema = z.strictObject({
   response: z.enum(["yes", "no"]),
   partySize: z.number().int().positive().optional(),
-  dietary: z.string().max(500).optional(),
-  notes: z.string().max(500).optional(),
 });
 
 export type RespondInput = z.infer<typeof respondSchema>;

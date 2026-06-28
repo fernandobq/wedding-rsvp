@@ -42,8 +42,6 @@ export default async function AdminPage() {
                 <Th>Name</Th>
                 <Th>Response</Th>
                 <Th>Party</Th>
-                <Th>Dietary</Th>
-                <Th>Notes</Th>
                 <Th>Responded</Th>
               </tr>
             </thead>
@@ -59,8 +57,6 @@ export default async function AdminPage() {
                       ? `${g.partySize ?? 1} / ${g.maxGuests}`
                       : "—"}
                   </Td>
-                  <Td className="text-stone-600">{g.dietary || "—"}</Td>
-                  <Td className="text-stone-600">{g.notes || "—"}</Td>
                   <Td className="whitespace-nowrap text-stone-500">
                     {g.respondedAt
                       ? new Date(g.respondedAt).toLocaleDateString(undefined, {

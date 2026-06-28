@@ -25,8 +25,6 @@ export async function GET(
         maxGuests: guests.maxGuests,
         response: guests.response,
         partySize: guests.partySize,
-        dietary: guests.dietary,
-        notes: guests.notes,
       })
       .from(guests)
       .where(eq(guests.id, id))
@@ -61,7 +59,7 @@ export async function PATCH(
   )[0];
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { response, dietary, notes } = parsed.data;
+  const { response } = parsed.data;
 
   // Only a "yes" has a party size; clamp it to 1..maxGuests
   let partySize: number | null = null;
@@ -76,8 +74,6 @@ export async function PATCH(
       .set({
         response,
         partySize,
-        dietary: dietary ?? null,
-        notes: notes ?? null,
         respondedAt: new Date(),
       })
       .where(eq(guests.id, id))

@@ -8,8 +8,6 @@ export const guests = pgTable("guests", {
   maxGuests: integer("max_guests").notNull().default(1),
   response: responseEnum("response"), // null = not answered yet
   partySize: integer("party_size"),
-  dietary: text("dietary"),
-  notes: text("notes"),
   respondedAt: timestamp("responded_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
