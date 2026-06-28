@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Wedding RSVP
 
-## Getting Started
+A small, free RSVP app. Each invitation (a person or a household) gets a private
+link containing its UUID. Guests open the link, answer yes/no, say how many are
+coming, and leave dietary/notes. A password-protected `/admin` dashboard shows
+who has replied and the total headcount.
 
-First, run the development server:
+Built with Next.js (App Router), Neon Postgres, Drizzle ORM, and Zod, deployable
+free on Netlify.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Stack
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Concern        | Choice                              |
+| -------------- | ----------------------------------- |
+| Framework      | Next.js 16 (App Router)             |
+| Database       | Neon Postgres (free tier)           |
+| DB driver      | `@neondatabase/serverless` (HTTP)   |
+| ORM            | Drizzle + drizzle-kit migrations    |
+| Validation     | Zod                                 |
+| Styling        | Tailwind CSS                        |
+| Admin auth     | HTTP Basic Auth via `src/proxy.ts`  |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Create a [Neon](https://neon.tech) project and copy the **pooled** connection
+   string.
+2. Fill in `.env.local` (already created, git-ignored):
 
-## Learn More
+   ```
+   DATABASE_URL="postgresql://...your-neon-pooled-url..."
+   ADMIN_PASSWORD="a-long-random-string"
+   # SITE_URL="https://your-site.netlify.app"   # used by the seed script
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+3. Create the table and seed your guest list:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   npm run db:migrate   # applies the migration in ./drizzle to Neon
+   npm run db:seed      # inserts guests and prints their private links
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+   Edit the list in [`scripts/seed.ts`](scripts/seed.ts) first. Re-running only
+   inserts the listed rows; existing rows are untouched, so add new guests over
+   time and re-run to mint their links.
 
-## Deploy on Vercel
+4. Run locally:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   ```bash
+   npm run dev
+   ```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   - Guest page: `http://localhost:3000/rsvp/<id>`
+   - Admin dashboard: `http://localhost:3000/admin` (any username; password is
+     `ADMIN_PASSWORD`)
+
+## Scripts
+
+| Command              | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| `npm run dev`        | Start the dev server                               |
+| `npm run build`      | Production build                                   |
+| `npm run db:generate`| Generate a new migration from the schema           |
+| `npm run db:migrate` | Apply migrations to the database                   |
+| `npm run db:push`    | Push the schema directly (no migration file)       |
+| `npm run db:studio`  | Browse/edit the data in Drizzle Studio             |
+| `npm run db:seed`    | Insert the seed guest list and print links         |
+
+> `.env.local` is loaded automatically by `drizzle.config.ts` (via
+> `process.loadEnvFile`) and by the seed script (via `tsx --env-file`), so the
+> db scripts work without any extra dotenv setup.
+
+## Deploy to Netlify
+
+1. Push the repo to GitHub and import it in Netlify (the Next.js runtime is
+   automatic).
+2. In Netlify > Site settings > Environment variables, add `DATABASE_URL` and
+   `ADMIN_PASSWORD` (same values as `.env.local`).
+3. Deploy, then open a seeded `/rsvp/<id>` link and submit a test RSVP.
+4. Set `SITE_URL` to your real domain and re-run `npm run db:seed` if you seeded
+   before knowing the URL.
+
+## Data model
+
+One row per invitation in the `guests` table. `response` is `null` until the
+guest answers (so "answered" is derivable and not stored). `party_size` is set
+only on a "yes" and is clamped server-side to the invitation's `max_guests`.
