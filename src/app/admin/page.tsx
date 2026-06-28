@@ -1,7 +1,7 @@
 import { sql, eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { guests } from "@/db/schema";
-import { unlockGuest } from "@/app/actions";
+import { unlockGuest, toggleInvite } from "@/app/actions";
 import { CopyLink } from "./CopyLink";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,9 @@ export default async function AdminPage() {
     .where(eq(guests.response, "yes"));
 
   const total = rows.length;
+  const invitedRows = rows.filter((g) => g.isInvited);
+  const invitedHouseholds = invitedRows.length;
+  const invited = invitedRows.reduce((sum, g) => sum + g.maxGuests, 0);
   const yes = rows.filter((g) => g.response === "yes").length;
   const no = rows.filter((g) => g.response === "no").length;
   const pending = rows.filter((g) => g.response === null).length;
@@ -26,11 +29,13 @@ export default async function AdminPage() {
         <header className="mb-8">
           <h1 className="text-3xl font-semibold text-stone-800">RSVP dashboard</h1>
           <p className="mt-1 text-stone-600">
-            {total} invitation{total === 1 ? "" : "s"} · {pending} awaiting a reply
+            {invitedHouseholds} of {total} on the list invited · {pending} awaiting
+            a reply
           </p>
         </header>
 
-        <section className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <section className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
+          <Stat label="Invited (people)" value={invited} />
           <Stat label="Attending (people)" value={attendingCount} accent />
           <Stat label="Said yes" value={yes} />
           <Stat label="Said no" value={no} />
@@ -42,6 +47,7 @@ export default async function AdminPage() {
             <thead className="bg-stone-50 text-stone-500">
               <tr>
                 <Th>Name</Th>
+                <Th>Invited</Th>
                 <Th>Response</Th>
                 <Th>Party</Th>
                 <Th>Responded</Th>
@@ -51,8 +57,34 @@ export default async function AdminPage() {
             </thead>
             <tbody className="divide-y divide-stone-100">
               {rows.map((g) => (
-                <tr key={g.id} className="align-top">
+                <tr
+                  key={g.id}
+                  className={`align-top ${g.isInvited ? "" : "bg-stone-50/60"}`}
+                >
                   <Td className="font-medium text-stone-800">{g.name}</Td>
+                  <Td>
+                    <div className="flex items-center gap-2">
+                      <InvitedBadge invited={g.isInvited} />
+                      <form action={toggleInvite}>
+                        <input type="hidden" name="id" value={g.id} />
+                        <input
+                          type="hidden"
+                          name="invited"
+                          value={g.isInvited ? "false" : "true"}
+                        />
+                        <button
+                          type="submit"
+                          className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
+                            g.isInvited
+                              ? "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
+                              : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                          }`}
+                        >
+                          {g.isInvited ? "Uninvite" : "Invite"}
+                        </button>
+                      </form>
+                    </div>
+                  </Td>
                   <Td>
                     <ResponseBadge response={g.response} />
                   </Td>
@@ -91,7 +123,7 @@ export default async function AdminPage() {
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td className="px-4 py-3 text-stone-500" colSpan={6}>
+                  <td className="px-4 py-3 text-stone-500" colSpan={7}>
                     No guests yet. Run the seed script to add your list.
                   </td>
                 </tr>
@@ -142,6 +174,17 @@ function ResponseBadge({ response }: { response: "yes" | "no" | null }) {
   return (
     <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles}`}>
       {label}
+    </span>
+  );
+}
+
+function InvitedBadge({ invited }: { invited: boolean }) {
+  const styles = invited
+    ? "bg-rose-100 text-rose-700"
+    : "bg-stone-200 text-stone-500";
+  return (
+    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles}`}>
+      {invited ? "Invited" : "Not invited"}
     </span>
   );
 }

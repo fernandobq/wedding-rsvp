@@ -10,7 +10,7 @@ const uuidSchema = z.uuid();
 // GET: load an invitation so the guest's page can show their name + options
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   if (!uuidSchema.safeParse(id).success) {
@@ -26,20 +26,31 @@ export async function GET(
         response: guests.response,
         partySize: guests.partySize,
         canRespond: guests.canRespond,
+        isInvited: guests.isInvited,
       })
       .from(guests)
       .where(eq(guests.id, id))
       .limit(1)
   )[0];
 
-  if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(row);
+  // Treat not-invited rows as not-found so we don't leak invite status.
+  if (!row || !row.isInvited)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  return NextResponse.json({
+    id: row.id,
+    name: row.name,
+    maxGuests: row.maxGuests,
+    response: row.response,
+    partySize: row.partySize,
+    canRespond: row.canRespond,
+  });
 }
 
 // PATCH: record the RSVP
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
   if (!uuidSchema.safeParse(id).success) {
@@ -51,14 +62,16 @@ export async function PATCH(
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid input", issues: parsed.error.issues },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const existing = (
     await db.select().from(guests).where(eq(guests.id, id)).limit(1)
   )[0];
-  if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  // Treat not-invited rows as not-found so they can't submit an RSVP.
+  if (!existing || !existing.isInvited)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (!existing.canRespond) {
     return NextResponse.json({ error: "Response locked" }, { status: 409 });
