@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="L & F">
+  <rect width="64" height="64" rx="13" fill="#4A3C2E"/>
+  <rect x="4" y="4" width="56" height="56" rx="9.5" fill="none" stroke="#B98C6D" stroke-width="1.5" opacity="0.75"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-family="Georgia, 'Times New Roman', serif">
+    <tspan font-size="30" fill="#FBF8F2">L</tspan>
+    <tspan font-size="20" fill="#B98C6D" dx="1" dy="-1">&amp;</tspan>
+    <tspan font-size="30" fill="#FBF8F2" dx="1" dy="1">F</tspan>
+  </text>
+</svg>
