@@ -1,6 +1,7 @@
 import { sql, eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { guests } from "@/db/schema";
+import { unlockGuest } from "@/app/actions";
 import { CopyLink } from "./CopyLink";
 
 export const dynamic = "force-dynamic";
@@ -44,6 +45,7 @@ export default async function AdminPage() {
                 <Th>Response</Th>
                 <Th>Party</Th>
                 <Th>Responded</Th>
+                <Th>Status</Th>
                 <Th>Invitation link</Th>
               </tr>
             </thead>
@@ -68,13 +70,28 @@ export default async function AdminPage() {
                       : "—"}
                   </Td>
                   <Td>
+                    {g.canRespond ? (
+                      <span className="text-xs text-stone-400">Open</span>
+                    ) : (
+                      <form action={unlockGuest}>
+                        <input type="hidden" name="id" value={g.id} />
+                        <button
+                          type="submit"
+                          className="rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-100"
+                        >
+                          Unlock
+                        </button>
+                      </form>
+                    )}
+                  </Td>
+                  <Td>
                     <CopyLink id={g.id} />
                   </Td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td className="px-4 py-3 text-stone-500" colSpan={5}>
+                  <td className="px-4 py-3 text-stone-500" colSpan={6}>
                     No guests yet. Run the seed script to add your list.
                   </td>
                 </tr>

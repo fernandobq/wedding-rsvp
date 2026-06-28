@@ -15,6 +15,13 @@
       "when": 1782618335160,
       "tag": "0001_far_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1782621007946,
+      "tag": "0002_parallel_pandemic",
+      "breakpoints": true
     }
   ]
 }

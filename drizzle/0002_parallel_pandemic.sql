@@ -1,0 +1,1 @@
+ALTER TABLE "guests" ADD COLUMN "can_respond" boolean DEFAULT true NOT NULL;
