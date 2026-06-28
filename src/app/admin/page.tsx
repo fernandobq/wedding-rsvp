@@ -1,6 +1,7 @@
 import { sql, eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { guests } from "@/db/schema";
+import { CopyLink } from "./CopyLink";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,7 @@ export default async function AdminPage() {
                 <Th>Response</Th>
                 <Th>Party</Th>
                 <Th>Responded</Th>
+                <Th>Invitation link</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -65,13 +67,16 @@ export default async function AdminPage() {
                         })
                       : "—"}
                   </Td>
+                  <Td>
+                    <CopyLink id={g.id} />
+                  </Td>
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <Td className="text-stone-500">
+                  <td className="px-4 py-3 text-stone-500" colSpan={5}>
                     No guests yet. Run the seed script to add your list.
-                  </Td>
+                  </td>
                 </tr>
               )}
             </tbody>
