@@ -17,3 +17,16 @@ export async function unlockGuest(formData: FormData) {
   await db.update(guests).set({ canRespond: true }).where(eq(guests.id, id));
   revalidatePath("/admin");
 }
+
+// Mark a guest as invited / not invited from the admin dashboard. Only invited
+// guests can view or respond to their invitation. The desired next state is
+// passed as a hidden field so we don't need an extra read.
+export async function toggleInvite(formData: FormData) {
+  const id = String(formData.get("id"));
+  if (!uuidSchema.safeParse(id).success) return;
+
+  const isInvited = formData.get("invited") === "true";
+
+  await db.update(guests).set({ isInvited }).where(eq(guests.id, id));
+  revalidatePath("/admin");
+}

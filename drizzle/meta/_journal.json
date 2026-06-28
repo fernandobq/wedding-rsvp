@@ -22,6 +22,13 @@
       "when": 1782621007946,
       "tag": "0002_parallel_pandemic",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1782627831890,
+      "tag": "0003_fancy_morgan_stark",
+      "breakpoints": true
     }
   ]
 }
