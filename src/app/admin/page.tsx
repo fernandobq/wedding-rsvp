@@ -18,9 +18,11 @@ export default async function AdminPage() {
   const invitedRows = rows.filter((g) => g.isInvited);
   const invitedHouseholds = invitedRows.length;
   const invited = invitedRows.reduce((sum, g) => sum + g.maxGuests, 0);
+  const totalPeople = rows.reduce((sum, g) => sum + g.maxGuests, 0);
   const yes = rows.filter((g) => g.response === "yes").length;
   const no = rows.filter((g) => g.response === "no").length;
   const pending = rows.filter((g) => g.response === null).length;
+  const replied = yes + no;
   const attendingCount = Number(attending);
 
   return (
@@ -39,12 +41,13 @@ export default async function AdminPage() {
           <AddGuest />
         </header>
 
-        <section className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
-          <Stat label="Invited (people)" value={invited} />
+        <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Stat label="Attending (people)" value={attendingCount} accent />
-          <Stat label="Said yes" value={yes} />
+          <Stat label="Answered" value={yes} />
+          <Stat label="Replied" value={replied} />
+          <Stat label="Invited (people)" value={invited} />
+          <Stat label="Total on list (people)" value={totalPeople} />
           <Stat label="Said no" value={no} />
-          <Stat label="No reply yet" value={pending} />
         </section>
 
         <GuestTable rows={rows} />

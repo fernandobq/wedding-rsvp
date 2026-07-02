@@ -5,14 +5,65 @@ import type { Guest } from "@/db/schema";
 import { unlockGuest } from "@/app/actions";
 import { RowActions } from "./RowActions";
 
+type SortKey =
+  | "name"
+  | "invited"
+  | "response"
+  | "party"
+  | "responded"
+  | "status";
+
+type SortDir = "asc" | "desc";
+
+function getSortValue(g: Guest, key: SortKey): string | number {
+  switch (key) {
+    case "name":
+      return g.name.toLowerCase();
+    case "invited":
+      return g.isInvited ? 1 : 0;
+    case "response":
+      return g.response === "yes" ? 0 : g.response === "no" ? 1 : 2;
+    case "party":
+      return g.response === "yes" ? (g.partySize ?? 1) : -1;
+    case "responded":
+      return g.respondedAt ? new Date(g.respondedAt).getTime() : 0;
+    case "status":
+      return g.canRespond ? 1 : 0;
+  }
+}
+
 export function GuestTable({ rows }: { rows: Guest[] }) {
   const [query, setQuery] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  function handleSort(column: SortKey) {
+    if (sortKey === column) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(column);
+      setSortDir("asc");
+    }
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter((g) => g.name.toLowerCase().includes(q));
   }, [rows, query]);
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return filtered;
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...filtered].sort((a, b) => {
+      const av = getSortValue(a, sortKey);
+      const bv = getSortValue(b, sortKey);
+      if (typeof av === "string" && typeof bv === "string") {
+        return av.localeCompare(bv) * dir;
+      }
+      return ((av as number) - (bv as number)) * dir;
+    });
+  }, [filtered, sortKey, sortDir]);
 
   return (
     <div>
@@ -49,17 +100,53 @@ export function GuestTable({ rows }: { rows: Guest[] }) {
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="bg-stone-50 text-stone-500">
             <tr>
-              <Th>Name</Th>
-              <Th>Invited</Th>
-              <Th>Response</Th>
-              <Th>Party</Th>
-              <Th>Responded</Th>
-              <Th>Status</Th>
+              <SortableTh
+                label="Name"
+                column="name"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortableTh
+                label="Invited"
+                column="invited"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortableTh
+                label="Response"
+                column="response"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortableTh
+                label="Party"
+                column="party"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortableTh
+                label="Responded"
+                column="responded"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
+              <SortableTh
+                label="Status"
+                column="status"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSort={handleSort}
+              />
               <Th>Actions</Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-100">
-            {filtered.map((g) => (
+            {sorted.map((g) => (
               <tr
                 key={g.id}
                 className={`align-top ${g.isInvited ? "" : "bg-stone-50/60"}`}
@@ -160,6 +247,70 @@ function Th({ children }: { children: React.ReactNode }) {
     <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide">
       {children}
     </th>
+  );
+}
+
+function SortableTh({
+  label,
+  column,
+  sortKey,
+  sortDir,
+  onSort,
+}: {
+  label: string;
+  column: SortKey;
+  sortKey: SortKey | null;
+  sortDir: SortDir;
+  onSort: (column: SortKey) => void;
+}) {
+  const active = sortKey === column;
+  return (
+    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide">
+      <button
+        type="button"
+        onClick={() => onSort(column)}
+        className={`inline-flex items-center gap-1 transition hover:text-stone-700 ${
+          active ? "text-stone-700" : ""
+        }`}
+        aria-sort={active ? (sortDir === "asc" ? "ascending" : "descending") : "none"}
+      >
+        {label}
+        <SortIndicator active={active} dir={sortDir} />
+      </button>
+    </th>
+  );
+}
+
+function SortIndicator({ active, dir }: { active: boolean; dir: SortDir }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+      className={`h-3 w-3 ${active ? "text-rose-500" : "text-stone-300"}`}
+    >
+      {active ? (
+        dir === "asc" ? (
+          <path
+            fillRule="evenodd"
+            d="M10 5a.75.75 0 01.55.24l4 4.25a.75.75 0 11-1.1 1.02L10 6.85l-3.45 3.66a.75.75 0 11-1.1-1.02l4-4.25A.75.75 0 0110 5z"
+            clipRule="evenodd"
+          />
+        ) : (
+          <path
+            fillRule="evenodd"
+            d="M10 15a.75.75 0 01-.55-.24l-4-4.25a.75.75 0 111.1-1.02L10 13.15l3.45-3.66a.75.75 0 111.1 1.02l-4 4.25A.75.75 0 0110 15z"
+            clipRule="evenodd"
+          />
+        )
+      ) : (
+        <path
+          fillRule="evenodd"
+          d="M10 3.5l3 3.25H7l3-3.25zM7 13.25h6L10 16.5l-3-3.25z"
+          clipRule="evenodd"
+        />
+      )}
+    </svg>
   );
 }
 
