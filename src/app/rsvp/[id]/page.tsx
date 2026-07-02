@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Hero from "./Hero";
 import Details from "./Details";
+import GiftRegistry from "./GiftRegistry";
 import { LeafFlower } from "./Decorations";
 
 type Invitation = {
@@ -108,6 +109,7 @@ export default function RsvpPage() {
             )}
           </div>
         </section>
+        <GiftRegistry />
         <footer className="bg-cocoa px-8 py-8 text-center text-[#EDE3D2]">
           <p className="font-[family-name:var(--font-pinyon)] text-4xl">
             Leticia &amp; Fernando
