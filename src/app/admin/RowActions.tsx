@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
+import { createPortal } from "react-dom";
 import { toggleInvite, deleteGuest } from "@/app/actions";
+
+const MENU_WIDTH = 176; // w-44
 
 export function RowActions({
   id,
@@ -15,25 +25,54 @@ export function RowActions({
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [coords, setCoords] = useState<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
+  });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const updatePosition = useCallback(() => {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setCoords({
+      top: rect.bottom + 4,
+      left: Math.max(8, rect.right - MENU_WIDTH),
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (open) updatePosition();
+  }, [open, updatePosition]);
 
   useEffect(() => {
     if (!open) return;
+
     function onPointerDown(event: MouseEvent) {
-      if (!containerRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (
+        !buttonRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
         setOpen(false);
       }
     }
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") setOpen(false);
     }
+
     document.addEventListener("mousedown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
+    // Reposition while open; capture:true also catches scrolling containers.
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
     return () => {
       document.removeEventListener("mousedown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
     };
-  }, [open]);
+  }, [open, updatePosition]);
 
   function handleToggleInvite() {
     const formData = new FormData();
@@ -65,8 +104,9 @@ export function RowActions({
   }
 
   return (
-    <div ref={containerRef} className="relative inline-block text-left">
+    <>
       <button
+        ref={buttonRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={isPending}
@@ -89,37 +129,42 @@ export function RowActions({
         </svg>
       </button>
 
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-10 mt-1 w-44 overflow-hidden rounded-lg bg-white py-1 shadow-lg ring-1 ring-stone-900/10"
-        >
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleToggleInvite}
-            className="block w-full px-3 py-2 text-left text-sm text-stone-700 transition hover:bg-stone-50"
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            style={{ top: coords.top, left: coords.left, width: MENU_WIDTH }}
+            className="fixed z-50 overflow-hidden rounded-lg bg-white py-1 shadow-lg ring-1 ring-stone-900/10"
           >
-            {isInvited ? "Uninvite" : "Invite"}
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleCopy}
-            className="block w-full px-3 py-2 text-left text-sm text-stone-700 transition hover:bg-stone-50"
-          >
-            {copied ? "Link copied!" : "Copy invitation link"}
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            onClick={handleDelete}
-            className="block w-full px-3 py-2 text-left text-sm text-rose-700 transition hover:bg-rose-50"
-          >
-            Delete guest
-          </button>
-        </div>
-      )}
-    </div>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleToggleInvite}
+              className="block w-full px-3 py-2 text-left text-sm text-stone-700 transition hover:bg-stone-50"
+            >
+              {isInvited ? "Uninvite" : "Invite"}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleCopy}
+              className="block w-full px-3 py-2 text-left text-sm text-stone-700 transition hover:bg-stone-50"
+            >
+              {copied ? "Link copied!" : "Copy invitation link"}
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={handleDelete}
+              className="block w-full px-3 py-2 text-left text-sm text-rose-700 transition hover:bg-rose-50"
+            >
+              Delete guest
+            </button>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
