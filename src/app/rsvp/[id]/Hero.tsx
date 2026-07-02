@@ -28,9 +28,9 @@ export default function Hero() {
         Sábado 5 de Diciembre · 2026
       </p>
       <p className="mx-auto mt-6 max-w-[470px] font-[family-name:var(--font-ebgaramond)] text-[19px] italic leading-[1.75] text-mocha text-pretty">
-        Con la bendición de Dios y de nuestras familias, queremos compartir
-        contigo el día en que uniremos nuestras vidas. Tu presencia hará este
-        momento aún más especial.
+        Con la bendición de nuestras familias, queremos compartir contigo el día
+        en que uniremos nuestras vidas. Tu presencia hará este momento aún más
+        especial.
       </p>
     </section>
   );

@@ -5,7 +5,10 @@ const MAP_URL =
 
 export default function Details() {
   return (
-    <section aria-label="Detalles del evento" className="bg-sand px-8 py-14 sm:px-16">
+    <section
+      aria-label="Detalles del evento"
+      className="bg-sand px-8 py-14 sm:px-16"
+    >
       <p className="text-center font-[family-name:var(--font-tenor)] text-xs uppercase tracking-[0.3em] text-taupe">
         Cuándo &amp; Dónde
       </p>
@@ -15,7 +18,7 @@ export default function Details() {
       <div className="mx-auto mt-9 flex max-w-[600px] items-stretch">
         <DetailCol label="Fecha" lines={["5 de Diciembre", "2026"]} />
         <span className="w-px bg-hairline" />
-        <DetailCol label="Hora" lines={["2:00 PM", "de la tarde"]} />
+        <DetailCol label="Hora" lines={["2:00 PM"]} />
         <span className="w-px bg-hairline" />
         <DetailCol label="Recepción" lines={["Terraza", "Balcones"]} />
       </div>

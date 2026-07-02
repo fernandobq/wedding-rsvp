@@ -10,20 +10,12 @@ export default function GiftRegistry() {
       aria-label="Mesa de regalos"
       className="border-t border-hairline bg-sand px-8 py-14 text-center sm:px-16"
     >
-      <p className="font-[family-name:var(--font-tenor)] text-xs uppercase tracking-[0.3em] text-taupe">
-        Mesa de regalos
-      </p>
       <h2 className="mt-2 font-[family-name:var(--font-cormorant)] text-[40px] font-medium text-cocoa">
-        Un detalle con cariño
+        Mesa de Regalos
       </h2>
       <div className="mt-4 mb-1 flex justify-center">
         <LeafFlower />
       </div>
-      <p className="mx-auto mt-2 max-w-[470px] font-[family-name:var(--font-ebgaramond)] text-[18px] italic leading-[1.75] text-mocha text-pretty">
-        Tu compañía en este día es nuestro mejor regalo. Si además quieres tener
-        un detalle con nosotros, aquí puedes encontrar nuestras mesas de
-        regalos.
-      </p>
       <div className="mx-auto mt-8 flex max-w-[420px] flex-col gap-3 sm:flex-row sm:justify-center">
         <a
           href={LIVERPOOL_URL}
