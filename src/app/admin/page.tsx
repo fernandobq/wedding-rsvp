@@ -22,7 +22,6 @@ export default async function AdminPage() {
   const yes = rows.filter((g) => g.response === "yes").length;
   const no = rows.filter((g) => g.response === "no").length;
   const pending = rows.filter((g) => g.response === null).length;
-  const replied = yes + no;
   const attendingCount = Number(attending);
 
   return (
@@ -44,7 +43,7 @@ export default async function AdminPage() {
         <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Stat label="Attending (people)" value={attendingCount} accent />
           <Stat label="Answered" value={yes} />
-          <Stat label="Replied" value={replied} />
+          <Stat label="Awaiting reply" value={pending} />
           <Stat label="Invited (people)" value={invited} />
           <Stat label="Total on list (people)" value={totalPeople} />
           <Stat label="Said no" value={no} />
