@@ -1,8 +1,9 @@
 import { sql, eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { guests } from "@/db/schema";
-import { unlockGuest, toggleInvite } from "@/app/actions";
-import { CopyLink } from "./CopyLink";
+import { unlockGuest } from "@/app/actions";
+import { AddGuest } from "./AddGuest";
+import { RowActions } from "./RowActions";
 
 export const dynamic = "force-dynamic";
 
@@ -26,12 +27,17 @@ export default async function AdminPage() {
   return (
     <main className="min-h-screen bg-stone-100 px-4 py-10">
       <div className="mx-auto max-w-5xl">
-        <header className="mb-8">
-          <h1 className="text-3xl font-semibold text-stone-800">RSVP dashboard</h1>
-          <p className="mt-1 text-stone-600">
-            {invitedHouseholds} of {total} on the list invited · {pending} awaiting
-            a reply
-          </p>
+        <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold text-stone-800">
+              RSVP dashboard
+            </h1>
+            <p className="mt-1 text-stone-600">
+              {invitedHouseholds} of {total} on the list invited · {pending}{" "}
+              awaiting a reply
+            </p>
+          </div>
+          <AddGuest />
         </header>
 
         <section className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
@@ -42,8 +48,8 @@ export default async function AdminPage() {
           <Stat label="No reply yet" value={pending} />
         </section>
 
-        <div className="overflow-hidden rounded-xl bg-white shadow ring-1 ring-stone-900/5">
-          <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto rounded-xl bg-white shadow ring-1 ring-stone-900/5">
+          <table className="w-full min-w-[720px] text-left text-sm">
             <thead className="bg-stone-50 text-stone-500">
               <tr>
                 <Th>Name</Th>
@@ -52,7 +58,7 @@ export default async function AdminPage() {
                 <Th>Party</Th>
                 <Th>Responded</Th>
                 <Th>Status</Th>
-                <Th>Invitation link</Th>
+                <Th>Actions</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100">
@@ -63,27 +69,7 @@ export default async function AdminPage() {
                 >
                   <Td className="font-medium text-stone-800">{g.name}</Td>
                   <Td>
-                    <div className="flex items-center gap-2">
-                      <InvitedBadge invited={g.isInvited} />
-                      <form action={toggleInvite}>
-                        <input type="hidden" name="id" value={g.id} />
-                        <input
-                          type="hidden"
-                          name="invited"
-                          value={g.isInvited ? "false" : "true"}
-                        />
-                        <button
-                          type="submit"
-                          className={`rounded-md border px-2.5 py-1 text-xs font-medium transition ${
-                            g.isInvited
-                              ? "border-stone-200 bg-stone-50 text-stone-600 hover:bg-stone-100"
-                              : "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
-                          }`}
-                        >
-                          {g.isInvited ? "Uninvite" : "Invite"}
-                        </button>
-                      </form>
-                    </div>
+                    <InvitedBadge invited={g.isInvited} />
                   </Td>
                   <Td>
                     <ResponseBadge response={g.response} />
@@ -117,7 +103,11 @@ export default async function AdminPage() {
                     )}
                   </Td>
                   <Td>
-                    <CopyLink id={g.id} />
+                    <RowActions
+                      id={g.id}
+                      name={g.name}
+                      isInvited={g.isInvited}
+                    />
                   </Td>
                 </tr>
               ))}

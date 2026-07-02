@@ -30,3 +30,32 @@ export async function toggleInvite(formData: FormData) {
   await db.update(guests).set({ isInvited }).where(eq(guests.id, id));
   revalidatePath("/admin");
 }
+
+const addGuestSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(200),
+  maxGuests: z.coerce.number().int().min(1).max(20),
+});
+
+// Add a new guest to the list from the admin dashboard.
+export async function addGuest(formData: FormData) {
+  const parsed = addGuestSchema.safeParse({
+    name: formData.get("name"),
+    maxGuests: formData.get("maxGuests"),
+  });
+  if (!parsed.success) return;
+
+  await db.insert(guests).values({
+    name: parsed.data.name,
+    maxGuests: parsed.data.maxGuests,
+  });
+  revalidatePath("/admin");
+}
+
+// Permanently remove a guest from the list.
+export async function deleteGuest(formData: FormData) {
+  const id = String(formData.get("id"));
+  if (!uuidSchema.safeParse(id).success) return;
+
+  await db.delete(guests).where(eq(guests.id, id));
+  revalidatePath("/admin");
+}
