@@ -1,9 +1,8 @@
 import { sql, eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { guests } from "@/db/schema";
-import { unlockGuest } from "@/app/actions";
 import { AddGuest } from "./AddGuest";
-import { RowActions } from "./RowActions";
+import { GuestTable } from "./GuestTable";
 
 export const dynamic = "force-dynamic";
 
@@ -48,79 +47,7 @@ export default async function AdminPage() {
           <Stat label="No reply yet" value={pending} />
         </section>
 
-        <div className="overflow-x-auto rounded-xl bg-white shadow ring-1 ring-stone-900/5">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="bg-stone-50 text-stone-500">
-              <tr>
-                <Th>Name</Th>
-                <Th>Invited</Th>
-                <Th>Response</Th>
-                <Th>Party</Th>
-                <Th>Responded</Th>
-                <Th>Status</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {rows.map((g) => (
-                <tr
-                  key={g.id}
-                  className={`align-top ${g.isInvited ? "" : "bg-stone-50/60"}`}
-                >
-                  <Td className="font-medium text-stone-800">{g.name}</Td>
-                  <Td>
-                    <InvitedBadge invited={g.isInvited} />
-                  </Td>
-                  <Td>
-                    <ResponseBadge response={g.response} />
-                  </Td>
-                  <Td>
-                    {g.response === "yes"
-                      ? `${g.partySize ?? 1} / ${g.maxGuests}`
-                      : "—"}
-                  </Td>
-                  <Td className="whitespace-nowrap text-stone-500">
-                    {g.respondedAt
-                      ? new Date(g.respondedAt).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "—"}
-                  </Td>
-                  <Td>
-                    {g.canRespond ? (
-                      <span className="text-xs text-stone-400">Open</span>
-                    ) : (
-                      <form action={unlockGuest}>
-                        <input type="hidden" name="id" value={g.id} />
-                        <button
-                          type="submit"
-                          className="rounded-md border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-medium text-rose-700 transition hover:bg-rose-100"
-                        >
-                          Unlock
-                        </button>
-                      </form>
-                    )}
-                  </Td>
-                  <Td>
-                    <RowActions
-                      id={g.id}
-                      name={g.name}
-                      isInvited={g.isInvited}
-                    />
-                  </Td>
-                </tr>
-              ))}
-              {rows.length === 0 && (
-                <tr>
-                  <td className="px-4 py-3 text-stone-500" colSpan={7}>
-                    No guests yet. Run the seed script to add your list.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <GuestTable rows={rows} />
       </div>
     </main>
   );
@@ -151,48 +78,4 @@ function Stat({
       </div>
     </div>
   );
-}
-
-function ResponseBadge({ response }: { response: "yes" | "no" | null }) {
-  const styles =
-    response === "yes"
-      ? "bg-green-100 text-green-700"
-      : response === "no"
-        ? "bg-stone-200 text-stone-600"
-        : "bg-amber-100 text-amber-700";
-  const label = response === "yes" ? "Yes" : response === "no" ? "No" : "Pending";
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles}`}>
-      {label}
-    </span>
-  );
-}
-
-function InvitedBadge({ invited }: { invited: boolean }) {
-  const styles = invited
-    ? "bg-rose-100 text-rose-700"
-    : "bg-stone-200 text-stone-500";
-  return (
-    <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${styles}`}>
-      {invited ? "Invited" : "Not invited"}
-    </span>
-  );
-}
-
-function Th({ children }: { children: React.ReactNode }) {
-  return (
-    <th className="px-4 py-3 text-xs font-medium uppercase tracking-wide">
-      {children}
-    </th>
-  );
-}
-
-function Td({
-  children,
-  className = "",
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return <td className={`px-4 py-3 ${className}`}>{children}</td>;
 }
