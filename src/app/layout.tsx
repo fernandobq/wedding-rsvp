@@ -45,9 +45,20 @@ const tenor = Tenor_Sans({
   variable: "--font-tenor",
 });
 
+// Resolve the public site URL for absolute metadata (og:image) URLs. Prefer an
+// explicit SITE_URL, then fall back to the URLs Netlify injects at build time,
+// and finally localhost for local dev. Without an absolute URL, social
+// crawlers (WhatsApp, Facebook, etc.) can't fetch the preview image.
+const siteUrl =
+  process.env.SITE_URL ??
+  process.env.URL ??
+  process.env.DEPLOY_PRIME_URL ??
+  "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "Wedding RSVP",
-  description: "Let us know if you'll be joining us.",
+  metadataBase: new URL(siteUrl),
+  title: "Boda de L&F",
+  description: "Te invitamos a nuestra boda.",
 };
 
 export default function RootLayout({
