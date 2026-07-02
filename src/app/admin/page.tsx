@@ -21,7 +21,7 @@ export default async function AdminPage() {
   const totalPeople = rows.reduce((sum, g) => sum + g.maxGuests, 0);
   const yes = rows.filter((g) => g.response === "yes").length;
   const no = rows.filter((g) => g.response === "no").length;
-  const pending = rows.filter((g) => g.response === null).length;
+  const pending = invitedRows.filter((g) => g.response === null).length;
   const attendingCount = Number(attending);
 
   return (
