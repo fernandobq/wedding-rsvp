@@ -8,7 +8,7 @@ import RsvpClient from "./RsvpClient";
 
 export const dynamic = "force-dynamic";
 
-const OG_IMAGE = "/og-image.png";
+const OG_IMAGE = "/og-image.jpg";
 const uuidSchema = z.uuid();
 
 // Look up the invited guest's name for the invitation link. Cached so the page
@@ -51,6 +51,7 @@ export async function generateMetadata({
           url: OG_IMAGE,
           width: 696,
           height: 784,
+          type: "image/jpeg",
           alt: "Leticia & Fernando",
         },
       ],
