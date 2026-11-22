@@ -22,6 +22,9 @@ export default function Details() {
         <span className="w-px bg-hairline" />
         <DetailCol label="Recepción" lines={["Terraza", "Balcones"]} />
       </div>
+      <div className="mx-auto mt-8">
+        <DetailCol label="Código de vestimenta" lines={["Cóctel"]} />
+      </div>
       <div className="mx-auto mt-9 max-w-[620px] overflow-hidden rounded border border-[#E0D4BF] bg-cream">
         <VenueMap />
         <div className="px-7 py-6 text-center">
